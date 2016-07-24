@@ -14,4 +14,4 @@ The script then navigates to a specified folder and checks if there is an existi
 ## How I built it
 The primary script is triggered on a form submit and pulls data from that submission to search the doc template and replace each keyword with a cell from the spreadsheet. I was able to follow a simple guide that just created the pdf and then sent it in an email as a starting point and then developed it further to compile all the docs into folders which makes it very easy for me to download everything as a zip to email to my advisor. 
 
-# I've left most of the fields to be easily editable for others to harness for their own forms and docs. Hope others find it helpful! 
+## I've tried to make most of the file-specific fields easily editable for others to harness for their own forms and docs. Enjoy!
