@@ -1,0 +1,20 @@
+var spreadsheetId = "put a sheet id here";
+
+function names() {
+  var spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  var sheet = spreadsheet.getSheetByName("sheet name");
+  var values = sheet.getDataRange().getValues();
+  var cell = [];
+  for(var n = 1; n < sheet.getLastRow(); n++){ //start at n=1 if you have a header row, otherwise start at n=0
+    cell[n-1] = values[n][0] ; // get 0th column values and put them in an array
+  }
+  
+  var form = FormApp.openById('put form id here');
+  var items = form.getItems();
+  var item = items[0].asListItem(); //get the first item that is a List type (dropdown menu); other types include Multiple Choice, Text, etc
+  var choices = [];
+  for(var i=0; i < cell.length; i++){
+    choices[i] = item.createChoice(cell[i]); //make the array into an array of choices 
+  }
+  item.setChoices(choices); //update the list to the new choices
+}
