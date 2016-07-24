@@ -1,0 +1,71 @@
+var docTemplate = "put a doc id here"; //id for  template
+var docName = "put a form name here"; 
+var email_address = "xxxx@gmail.com"; //who's should the notification email go to?
+var folderId = "put a folder id here"; //id for folder
+
+
+function getFolder(parent_folder,folder_name){ //returns the folder for a specific launch 
+  var folders = parent_folder.getFolders();     
+  while (folders.hasNext()) {
+    var folder = folders.next();
+    if(folder_name == folder.getName()) {      //see if it exists already
+      return folder;
+    }
+  }
+  var folder = parent_folder.createFolder(folder_name); //make folder if it doesn't exist
+  return folder;
+}
+
+function onFormSubmit(e){
+   /* var names = ["full_name", "cur_cert", "launch_name", "launch_obj", "rocket_name", 
+                 "launch_loc", "descrip", "dim", "mat", "motor", "avionics", 
+                 "payload", "add_mem", "add_notes"]; 14 fields */ // helping me keep track of which fields in which order
+  
+  var num_fields = 14; //replace with how many fields are in your form
+  var variables = [];
+  for(var i = 0; i< num_fields; i++){
+    variables[i] = e.values[i+2]; // we skip the first 2 columns in the spreadsheet which are the timestamp and autocollected username; this may be +1 for just a timestamp
+  }
+  
+  var n = variables[2].lastIndexOf('-'); //variables[2] was of the form "launchname - launchdate" and I wanted to separate these out for some things
+  var launchname = variables[2].substring(0, n-1);
+  n = variables[2].lastIndexOf('-');
+  var launchdate = variables[2].substring(n+1);
+  
+  var copyId = DriveApp.getFileById(docTemplate) //makes a copy of the template and gets the doc id
+  .makeCopy(variables[0]+"_"+launchname +"_"+docName)
+  .getId();
+  var copyDoc = DocumentApp.openById(copyId);
+  var copyBody = copyDoc.getBody();
+
+  copyBody.replaceText('keyLauncher', variables[0]); //specifying the keywords used in the doc for the variables
+  copyBody.replaceText('keyCertLevel', variables[1]); 
+  copyBody.replaceText('keyLaunchName', launchname);
+  copyBody.replaceText('keyLaunchDate', launchdate);
+  copyBody.replaceText('keyLaunchObj', variables[3]);
+  copyBody.replaceText('keyRocketName', variables[4]);   
+  copyBody.replaceText('keyLaunchLoc', variables[5]);
+  copyBody.replaceText('keyRocDescrip', variables[6]); 
+  copyBody.replaceText('keyRocDim', variables[7]);
+  copyBody.replaceText('keyRocMat', variables[8]);
+  copyBody.replaceText('keyRocMotor', variables[9]);
+  copyBody.replaceText('keyRocAvion', variables[10]); 
+  copyBody.replaceText('keyRocPayld', variables[11]);
+  copyBody.replaceText('keyAddMem', variables[12]);
+  copyBody.replaceText('keyAddNote', variables[13]);
+
+  copyDoc.saveAndClose();
+  
+  var pdf = DriveApp.getFileById(copyId).getAs('application/pdf'); //making a pdf
+  var parent = DriveApp.getFolderById(folderId);
+  var child = getFolder(parent, variables[2]);
+  child.createFile(pdf); //add pdf to folder
+//  child.addFile(DriveApp.getFileById(copyId)); //add google doc version to folder
+  
+  var subject = variables[0] + " has submitted a PFA for " + variables[2];
+  var body = subject;
+  
+  MailApp.sendEmail(email_address, subject, body); //send a notification email
+  //DriveApp.getFileById(copyId).setTrashed(true); //delete the local copy of google doc; only necessary for housekeeping after making pdfs
+ 
+}
